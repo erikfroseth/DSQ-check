@@ -7,5 +7,13 @@ namespace DSQ_check.DataStore
 {
     interface DatabaseInterface
     {
+        string ConnectionString
+        {
+            get;
+            set;
+        }
+
+        List<Classes.Runner> GetRunners();
+        Dictionary<string, Classes.Course> GetCourses();
     }
 }

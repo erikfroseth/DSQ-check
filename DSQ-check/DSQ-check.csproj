@@ -55,6 +55,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataStore\Classes\Course.cs" />
+    <Compile Include="DataStore\Classes\Runner.cs" />
+    <Compile Include="DataStore\DatabaseInterface.cs" />
+    <Compile Include="DataStore\eTimingInterface.cs" />
+    <Compile Include="DSQCheckCore.cs" />
+    <Compile Include="TimingUnits\ECU1.cs" />
+    <Compile Include="TimingUnits\MTR4.cs" />
+    <Compile Include="TimingUnits\TimingUnit.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

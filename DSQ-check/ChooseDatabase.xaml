@@ -1,0 +1,15 @@
+﻿<Window x:Class="DSQ_check.ChooseDatabase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Velg database" Height="125" Width="290" MinHeight="125" MinWidth="290">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Button Content="eTiming" Margin="12,41,6,12" Name="button_etiming" Click="button_etiming_Click" FontSize="18" />
+        <Button Content="EventSys" Margin="0,41,12,12" Name="button_eventsys" Click="button_eventsys_Click"  FontSize="18" Grid.Column="1" />
+
+        <TextBlock Height="23" Margin="12,12,12,0" Name="textBlock1" Text="Hvilken database skal du koble deg opp mot?" VerticalAlignment="Top" TextAlignment="Center" Grid.ColumnSpan="2" />
+    </Grid>
+</Window>

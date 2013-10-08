@@ -7,19 +7,19 @@ namespace DSQ_check
 {
     public class DSQCheckCore
     {
-        private DatabaseType _dbType;
+        private DataStore.DatabaseInfo _databaseInfo;
         private ConnectionHealth _connHealth;
 
         private DateTime _lastDatabaseRefresh = DateTime.MinValue;
 
-        private Dictionary<int, DataStore.Classes.Course> _courses;
-        private List<DataStore.Classes.Runner> _runners;
+        private Dictionary<int, DataStore.Classes.Course> _courses = new Dictionary<int,DataStore.Classes.Course>();
+        private List<DataStore.Classes.Runner> _runners = new List<DataStore.Classes.Runner>();
 
         private System.Timers.Timer _refreshTimer = new System.Timers.Timer(TimeSpan.FromSeconds(10).TotalMilliseconds);
 
-        public DSQCheckCore(DatabaseType dbType)
+        public DSQCheckCore(DataStore.DatabaseInfo dbInfo)
         {
-            _dbType = dbType;
+            _databaseInfo = dbInfo;
 
             RefreshDataStore();
 
@@ -47,10 +47,11 @@ namespace DSQ_check
 
             try
             {
-                switch (_dbType)
+                switch (_databaseInfo.DBType)
                 {
                     case DatabaseType.eTiming:
-                        database = new DataStore.eTimingInterface(null);
+                        DataStore.ETimingDatabase etimingDatabase = _databaseInfo as DataStore.ETimingDatabase;
+                        database = new DataStore.eTimingInterface(etimingDatabase.DatabaseFile);
                         break;
                     case DatabaseType.EventSys:
                     // break;
@@ -83,11 +84,24 @@ namespace DSQ_check
             }
         }
         
-        public Tuple<DataStore.Classes.Runner, DataStore.Classes.Course> GetRunnerAndCourse(uint identifierValue)
+        public Tuple<DataStore.Classes.Runner, DataStore.Classes.Course> GetRunnerAndCourse(uint identifierValue, RunnerIdentifier identifierType)
         {
             lock (this._runners)
             {
-                IEnumerable<DataStore.Classes.Runner> foundRunners = this._runners.Where(r => r.Ecard.HasValue && r.Ecard.Value == identifierValue);
+                IEnumerable<DataStore.Classes.Runner> foundRunners;
+                switch (identifierType)
+                {
+                    case RunnerIdentifier.Ecard:
+                        foundRunners = this._runners.Where(r => r.Ecard.HasValue && r.Ecard.Value == identifierValue);
+                        break;
+                    case RunnerIdentifier.EmiTag:
+                        foundRunners = this._runners.Where(r => (r.EmiTag1.HasValue && r.EmiTag1.Value == identifierValue)
+                                || (r.EmiTag2.HasValue && r.EmiTag2.Value == identifierValue)
+                            );
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
 
                 if (foundRunners.Any())
                 {
@@ -149,11 +163,11 @@ namespace DSQ_check
             }
         }
 
-        public DatabaseType DBType
+        public DataStore.DatabaseInfo DatabaseInfo
         {
             get
             {
-                return _dbType;
+                return _databaseInfo;
             }
         }
     }

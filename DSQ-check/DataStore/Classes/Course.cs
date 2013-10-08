@@ -45,7 +45,7 @@ namespace DSQ_check.DataStore.Classes
                 return _courseName;
             }
         }
-        public IEnumerable<byte> GetControls
+        public IEnumerable<byte> Controls
         {
             get
             {

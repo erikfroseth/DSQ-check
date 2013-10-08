@@ -22,6 +22,25 @@ namespace DSQ_check
         public MainWindow()
         {
             InitializeComponent();
+
+           
+
+            try
+            {
+                System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
+                w.Start();
+
+                using (DataStore.eTimingInterface data = new DataStore.eTimingInterface(new System.IO.FileInfo(@"C:\Users\Erik\Google Drive\tidtaking\Ferdig løp\kretsstafett_hl06\etime.mdb")))
+                {
+                    List<DataStore.Classes.Runner> runners = data.GetRunners();
+                    Dictionary<int, DataStore.Classes.Course> courses = data.GetCourses();
+                }
+
+                w.Stop();
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 }

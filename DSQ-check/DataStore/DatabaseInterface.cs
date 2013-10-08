@@ -5,15 +5,9 @@ using System.Text;
 
 namespace DSQ_check.DataStore
 {
-    interface DatabaseInterface
+    interface DatabaseInterface :IDisposable
     {
-        string ConnectionString
-        {
-            get;
-            set;
-        }
-
         List<Classes.Runner> GetRunners();
-        Dictionary<string, Classes.Course> GetCourses();
+        Dictionary<int, Classes.Course> GetCourses();
     }
 }

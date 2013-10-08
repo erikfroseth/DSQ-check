@@ -7,9 +7,10 @@ namespace DSQ_check.DataStore.Classes
 {
     public class Runner
     {
-        private string _firstName, _lastName, _courseId, _clubName;
+        private string _firstName, _lastName, _clubName;
         private uint? _ecard = null, _emitag1 = null, _emitag2 = null, _startNo = null;
-        public Runner(string firstName, string lastName, string courseId, string clubName, uint? ecard, uint? emitag1, uint? emitag2, uint? startno)
+        private int? _courseId;
+        public Runner(string firstName, string lastName, int? courseId, string clubName, uint? ecard, uint? emitag1, uint? emitag2, uint? startno)
         {
             _firstName = firstName;
             _lastName = lastName;
@@ -43,7 +44,7 @@ namespace DSQ_check.DataStore.Classes
                 return _lastName;
             }
         }
-        public string CourseId
+        public int? CourseId
         {
             get
             {

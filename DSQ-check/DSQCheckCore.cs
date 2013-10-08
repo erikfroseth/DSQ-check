@@ -158,16 +158,20 @@ namespace DSQ_check
         }
     }
 
-    enum DatabaseType
+    public enum DatabaseType
     {
         eTiming, EventSys
     }
-    enum ConnectionHealth
+    public enum ConnectionHealth
     {
         OK, NotWorking
     }
-    enum RunnerStatus
+    public enum RunnerStatus
     {
         OK, DSQ
+    }
+    public enum RunnerIdentifier
+    {
+        Ecard, EmiTag
     }
 }

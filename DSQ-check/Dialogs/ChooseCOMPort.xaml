@@ -1,0 +1,11 @@
+﻿<Window x:Class="DSQ_check.Dialogs.ChooseCOMPort"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Velg COM-port" Height="160" Width="262" WindowStyle="SingleBorderWindow" Loaded="Window_Loaded" ResizeMode="NoResize">
+    <Grid>
+        <ComboBox Height="23" Margin="12,41,12,0" Name="combobox_port" VerticalAlignment="Top" IsEditable="True" />
+        <TextBlock Height="23" HorizontalAlignment="Left" Margin="12,12,0,0" Name="textBlock1" Text="Velg COM-port" VerticalAlignment="Top" />
+        <Button Content="Avbryt" Height="23" HorizontalAlignment="Left" Margin="12,0,0,12" Name="button_cancel" Click="button_cancel_Click" VerticalAlignment="Bottom" Width="75" />
+        <Button Content="Velg" Height="23" HorizontalAlignment="Right" Margin="0,0,12,12" Name="button_choose" Click="button_choose_Click" VerticalAlignment="Bottom" Width="75" />
+    </Grid>
+</Window>

@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Globalization;
 
 namespace DSQ_check
 {
@@ -19,14 +20,20 @@ namespace DSQ_check
     /// </summary>
     public partial class MainWindow : Window
     {
-        private TimingUnits.TimingUnit _timingUnit;
+        private TimingUnits.TimingUnit _timingUnit = null;
         private DSQCheckCore _dsqCheckCore;
-        public MainWindow(DataStore.DatabaseInfo dbInfo, TimingUnits.TimingUnit timingUnit)
+        public MainWindow(DataStore.DatabaseInfo dbInfo)
         {
-            _dsqCheckCore = new DSQCheckCore(dbInfo);
-            _timingUnit = timingUnit;
-
             InitializeComponent();
+
+            statusbar.DataContext = _dsqCheckCore;
+            _dsqCheckCore = new DSQCheckCore(dbInfo);
+            _dsqCheckCore.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(_dsqCheckCore_PropertyChanged);
+        }
+
+        private void _dsqCheckCore_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+           
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -39,8 +46,8 @@ namespace DSQ_check
             textblock_status.Text = string.Empty;
 
             grid_dsqControl.Background = Brushes.Transparent;
-
             _timingUnit.TimingDataReadEvent += new TimingUnits.TimingUnit.TimingDataReadDelegatte(_timingUnit_TimingDataReadEvent);
+
         }
 
         private void _timingUnit_TimingDataReadEvent(TimingUnits.TimingPackage package)
@@ -124,6 +131,121 @@ namespace DSQ_check
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private void menuitem_ecu1(object sender, RoutedEventArgs e)
+        {
+            Dialogs.ChooseCOMPort comPort = new Dialogs.ChooseCOMPort();
+            comPort.ShowDialog();
+
+            if (!string.IsNullOrEmpty(comPort.COMPort))
+            {
+                _timingUnit = new TimingUnits.ECU1(comPort.COMPort);
+            }
+        }
+
+        private void menuitem_mtr4(object sender, RoutedEventArgs e)
+        {
+            Dialogs.ChooseCOMPort comPort = new Dialogs.ChooseCOMPort();
+            comPort.ShowDialog();
+
+            if (!string.IsNullOrEmpty(comPort.COMPort))
+            {
+                _timingUnit = new TimingUnits.MTR4(comPort.COMPort);
+            }
+        }
+
+        private void menuitem_startstop_communication_Click(object sender, RoutedEventArgs e)
+        {
+            if (_timingUnit == null)
+            {
+                MessageBox.Show("Du må velge en avlesningsenhet før du kan fortsette", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            else
+            {
+
+                if (_timingUnit.IsStarted)
+                {
+                    _timingUnit.StopCommunication();
+
+                    menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
+                    menuitem_startstop_communication.Header = "Start kommunikasjon";
+                }
+                else
+                {
+                    try
+                    {
+                        _timingUnit.StartCommunication();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Klarte ikke å starte kommunikasjonen med tidtakingsenheten. Følgende feilmelding oppstod: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    finally
+                    {
+                        menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
+
+                        if (_timingUnit.IsStarted)
+                        {
+                            menuitem_startstop_communication.Header = "Stopp kommunikasjon";
+                        }
+                        else
+                        {
+                            menuitem_startstop_communication.Header = "Start kommunikasjon";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public class LastUpdateConverter : IValueConverter
+    {
+        private const string DATE_FORMAT = "HH:mm:ss";
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            DateTime lastUpdate = (DateTime)value;
+            string returnValue = "Siste oppdatering fra database: ";
+
+            if (lastUpdate.Equals(DateTime.MinValue))
+            {
+                returnValue += "Aldri";
+            }
+            else
+            {
+                returnValue += lastUpdate.ToString(DATE_FORMAT);
+            }
+
+            return returnValue;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class NumRunnersAndCoursesConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values[0] is int && values[1] is int)
+            {
+                int numRunners = (int)values[0];
+                int numCourses = (int)values[1];
+
+                return string.Format("Antall løpere/løyper: {0}/{1}", numRunners, numCourses);
+            }
+            else
+            {
+                return "Antall løpere/løyper: Ukjent";
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

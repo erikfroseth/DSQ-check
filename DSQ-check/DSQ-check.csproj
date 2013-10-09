@@ -93,6 +93,9 @@
     <Compile Include="DataStore\DatabaseInterface.cs" />
     <Compile Include="DataStore\eTimingInterface.cs" />
     <Compile Include="DataStore\EventSysInterface.cs" />
+    <Compile Include="Dialogs\ChooseCOMPort.xaml.cs">
+      <DependentUpon>ChooseCOMPort.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DSQCheckCore.cs" />
     <Compile Include="TimingUnits\ECU1.cs" />
     <Compile Include="TimingUnits\MTR4.cs" />
@@ -110,6 +113,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ChooseEventSysEvent.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\ChooseCOMPort.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

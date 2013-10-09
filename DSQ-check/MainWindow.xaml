@@ -1,16 +1,47 @@
 ﻿<Window x:Class="DSQ_check.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Diskkontroll" Height="290" Width="660" MinHeight="290" MinWidth="600" Loaded="Window_Loaded" Closing="Window_Closing">
+        xmlns:converters="clr-namespace:DSQ_check"
+        Title="Diskkontroll" Height="290" Width="600" MinHeight="290" MinWidth="600" Loaded="Window_Loaded" Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="349*" />
             <ColumnDefinition Width="337*" />
         </Grid.ColumnDefinitions>
-        <StatusBar Height="23" Name="statusBar1" VerticalAlignment="Bottom" Grid.ColumnSpan="2" />
+        <StatusBar Height="23" Name="statusbar" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
+            <StatusBarItem>
+                <StatusBarItem.Content>
+                    <Binding Path="LastDataRefresh" Mode="OneWay">
+                        <Binding.Converter>
+                            <converters:LastUpdateConverter />
+                        </Binding.Converter>
+                    </Binding>
+                </StatusBarItem.Content>
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <StatusBarItem.Content>
+                    <MultiBinding>
+                        <MultiBinding.Converter>
+                            <converters:NumRunnersAndCoursesConverter />
+                        </MultiBinding.Converter>
+                        <Binding Path="NumRunners" Mode="OneWay" />
+                        <Binding Path="NumCourses" Mode="OneWay" />
+                    </MultiBinding>
+                </StatusBarItem.Content>
+            </StatusBarItem>
+        </StatusBar>
         <Menu Height="23" Name="menu1" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <MenuItem Header="Valg">
                 <MenuItem Header="Avslutt" Click="menuitem_exit_Click" />
+            </MenuItem>
+            <MenuItem Header="Avlesningsenhet">
+                <MenuItem Header="Velg avlesningsenhet">
+                    <MenuItem Header="ECU1" Click="menuitem_ecu1" />
+                    <MenuItem Header="MTR4" Click="menuitem_mtr4" />
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Start kommunikasjon" Name="menuitem_startstop_communication" Click="menuitem_startstop_communication_Click" />
             </MenuItem>
         </Menu>
         <GroupBox Header="Løper" Margin="12,29,0,29" Name="groupBox1">

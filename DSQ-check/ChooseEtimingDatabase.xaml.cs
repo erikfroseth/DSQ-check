@@ -54,7 +54,7 @@ namespace DSQ_check
                 }
                 else
                 {
-                    MainWindow mainWindow = new MainWindow(new DataStore.ETimingDatabase(textbox_filepath.Text, ecard1, ecard2), null);
+                    MainWindow mainWindow = new MainWindow(new DataStore.ETimingDatabase(textbox_filepath.Text, ecard1, ecard2));
                     mainWindow.Show();
 
                     exit = false;

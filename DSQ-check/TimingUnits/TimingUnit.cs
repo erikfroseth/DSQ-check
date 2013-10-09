@@ -21,11 +21,31 @@ namespace DSQ_check.TimingUnits
             _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
         }
 
+        public void StartCommunication()
+        {
+            _serialPort.Open();
+        }
+        public void StopCommunication()
+        {
+            try
+            {
+                _serialPort.Close();
+            }
+            catch (Exception) { }
+        }
+
         protected void RaiseDataReadEvent(TimingPackage package)
         {
             if (TimingDataReadEvent != null)
             {
                 TimingDataReadEvent(package);
+            }
+        }
+        public bool IsStarted
+        {
+            get
+            {
+                return _serialPort.IsOpen;
             }
         }
 

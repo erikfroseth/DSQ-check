@@ -44,7 +44,7 @@ namespace DSQ_check
             {
                 DataStore.EventSysDatabase dbinfo = new DataStore.EventSysDatabase(_connString, (ushort)combobox_event.SelectedValue);
 
-                MainWindow mainWindow = new MainWindow(dbinfo, null);
+                MainWindow mainWindow = new MainWindow(dbinfo);
                 mainWindow.Show();
 
                 exit = false;

@@ -208,12 +208,13 @@ namespace DSQ_check
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String info)
+        public event PropertyChangedEventHandler PropertyChanged = delegate { };
+        private void NotifyPropertyChanged(String propertyName)
         {
-            if (PropertyChanged != null)
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
             {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
+                handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
     }

@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 
 namespace DSQ_check
 {
-    public class DSQCheckCore
+    public class DSQCheckCore : INotifyPropertyChanged
     {
         private DataStore.DatabaseInfo _databaseInfo;
-        private ConnectionHealth _connHealth;
+        private ConnectionHealth _connHealth = ConnectionHealth.Unknown;
 
         private DateTime _lastDatabaseRefresh = DateTime.MinValue;
 
@@ -37,6 +38,7 @@ namespace DSQ_check
             {
                 // Should we do something here?
                 _connHealth = ConnectionHealth.NotWorking;
+                NotifyPropertyChanged("ConnectionHealth");
                 return;
             }
         }
@@ -70,12 +72,17 @@ namespace DSQ_check
                     {
                         _courses = courses;
                         _runners = runners;
+                        NotifyPropertyChanged("NumCourses");
+                        NotifyPropertyChanged("NumRunners");
+
 
                         _lastDatabaseRefresh = DateTime.Now;
+                        NotifyPropertyChanged("LastDataRefresh");
                     }
                 }
 
                 _connHealth = ConnectionHealth.OK;
+                NotifyPropertyChanged("ConnectionHealth");
             }
             finally
             {
@@ -172,6 +179,43 @@ namespace DSQ_check
                 return _databaseInfo;
             }
         }
+        public ConnectionHealth ConnectionHealth
+        {
+            get
+            {
+                return _connHealth;
+            }
+        }
+        public int NumRunners
+        {
+            get
+            {
+                return _runners.Count;
+            }
+        }
+        public int NumCourses
+        {
+            get
+            {
+                return _courses.Count;
+            }
+        }
+        public DateTime LastDataRefresh
+        {
+            get
+            {
+                return _lastDatabaseRefresh;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String info)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(info));
+            }
+        }
     }
 
     public enum DatabaseType
@@ -180,7 +224,7 @@ namespace DSQ_check
     }
     public enum ConnectionHealth
     {
-        OK, NotWorking
+        OK, NotWorking, Unknown
     }
     public enum RunnerStatus
     {

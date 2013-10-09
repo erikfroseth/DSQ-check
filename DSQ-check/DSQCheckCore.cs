@@ -51,10 +51,12 @@ namespace DSQ_check
                 {
                     case DatabaseType.eTiming:
                         DataStore.ETimingDatabase etimingDatabase = _databaseInfo as DataStore.ETimingDatabase;
-                        database = new DataStore.eTimingInterface(etimingDatabase.DatabaseFile);
+                        database = new DataStore.eTimingInterface(etimingDatabase);
                         break;
                     case DatabaseType.EventSys:
-                    // break;
+                        DataStore.EventSysDatabase eventsysDatabase = _databaseInfo as DataStore.EventSysDatabase;
+                        database = new DataStore.EventSysInterface(eventsysDatabase);
+                        break;
                     default:
                         throw new NotImplementedException();
                 }

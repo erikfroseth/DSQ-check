@@ -33,7 +33,10 @@ namespace DSQ_check
 
         private void button_eventsys_Click(object sender, RoutedEventArgs e)
         {
+            ChooseEventSysDatabase choose = new ChooseEventSysDatabase();
+            choose.Show();
 
+            this.Close();
         }
     }
 }

@@ -52,6 +52,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic.Compatibility" />
+    <Reference Include="MySql.Data, Version=6.5.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\MySQL\MySQL Connector Net 6.5.5\Assemblies\v4.0\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -80,11 +84,15 @@
     <Compile Include="ChooseEventSysDatabase.xaml.cs">
       <DependentUpon>ChooseEventSysDatabase.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ChooseEventSysEvent.xaml.cs">
+      <DependentUpon>ChooseEventSysEvent.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DataStore\Classes\Course.cs" />
     <Compile Include="DataStore\Classes\Runner.cs" />
     <Compile Include="DataStore\DatabaseInfo.cs" />
     <Compile Include="DataStore\DatabaseInterface.cs" />
     <Compile Include="DataStore\eTimingInterface.cs" />
+    <Compile Include="DataStore\EventSysInterface.cs" />
     <Compile Include="DSQCheckCore.cs" />
     <Compile Include="TimingUnits\ECU1.cs" />
     <Compile Include="TimingUnits\MTR4.cs" />
@@ -98,6 +106,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ChooseEventSysDatabase.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ChooseEventSysEvent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

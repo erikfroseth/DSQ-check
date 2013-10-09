@@ -9,11 +9,11 @@ namespace DSQ_check.DataStore
     public class eTimingInterface : DatabaseInterface 
     {
         private OleDbConnection _oleConnection;
-        private System.IO.FileInfo _databaseFile;
+        private ETimingDatabase _dbInfo;
 
-        public eTimingInterface(System.IO.FileInfo databaseFile)
+        public eTimingInterface(ETimingDatabase dbInfo)
         {
-            _databaseFile = databaseFile;
+            _dbInfo = dbInfo;
 
             _oleConnection = new OleDbConnection(GetConnectionString());
             _oleConnection.Open();
@@ -21,7 +21,7 @@ namespace DSQ_check.DataStore
 
         private string GetConnectionString()
         {
-            return string.Format("Provider=Microsoft.Jet.OLEDB.4.0;Data Source='{0}';Jet OLEDB:Engine Type=4;Mode=Read", _databaseFile.FullName);
+            return string.Format("Provider=Microsoft.Jet.OLEDB.4.0;Data Source='{0}';Jet OLEDB:Engine Type=4;Mode=Read", _dbInfo.DatabaseFile.FullName);
         }
 
         public List<Classes.Runner> GetRunners()
@@ -42,7 +42,7 @@ namespace DSQ_check.DataStore
                         string last_name = reader.GetValue(1).ToString().Trim();
                         string clubName = reader.GetValue(3).ToString().Trim();
                         int? courseId = null;
-                        uint? startNumber = null, ecard1 = null, ecard2 = null;
+                        uint? startNumber = null, ecard = null, emitag1 = null, emitag2 = null;
 
                         if (!reader.IsDBNull(2))
                         {
@@ -67,7 +67,17 @@ namespace DSQ_check.DataStore
                             uint testValue;
                             if (uint.TryParse(reader.GetValue(5).ToString(), out testValue))
                             {
-                                ecard1 = testValue;
+                                switch (_dbInfo.Ecard1As)
+                                {
+                                    case RunnerIdentifier.Ecard:
+                                        ecard = testValue;
+                                        break;
+                                    case RunnerIdentifier.EmiTag:
+                                        emitag1 = testValue;
+                                        break;
+                                    default:
+                                        throw new NotImplementedException();
+                                }
                             }
                         }
 
@@ -76,11 +86,21 @@ namespace DSQ_check.DataStore
                             uint testValue;
                             if (uint.TryParse(reader.GetValue(6).ToString(), out testValue))
                             {
-                                ecard2 = testValue;
+                                switch (_dbInfo.Ecard1As)
+                                {
+                                    case RunnerIdentifier.Ecard:
+                                        ecard = testValue;
+                                        break;
+                                    case RunnerIdentifier.EmiTag:
+                                        emitag2 = testValue;
+                                        break;
+                                    default:
+                                        throw new NotImplementedException();
+                                }
                             }
                         }
 
-                        Classes.Runner newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, ecard1, ecard2, null, startNumber);
+                        Classes.Runner newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, ecard, emitag1, emitag2, startNumber);
                         runners.Add(newRunner);
                     }
                 }
@@ -173,3 +193,4 @@ namespace DSQ_check.DataStore
         }
     }
 }
+

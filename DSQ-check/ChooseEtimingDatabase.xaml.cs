@@ -32,13 +32,34 @@ namespace DSQ_check
                 MessageBox.Show("Finner ikke databasefilen du spesifiserte. Vennligst korriger dette før du fortsetter.", "Finner ikke databasen.", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+            else if (combobox_ecard1.SelectedValue == null)
+            {
+                MessageBox.Show("Du må velge hva du skal sette ecard1 (gult brikkefelt) til før du kan fortsette", "Mangler ecard1", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            else if (combobox_ecard2.SelectedValue == null)
+            {
+                MessageBox.Show("Du må velge hva du skal sette ecard2 (blått brikkefelt) til før du kan fortsette", "Mangler ecard2", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             else
             {
-                MainWindow mainWindow = new MainWindow(new DataStore.ETimingDatabase(textbox_filepath.Text), null);
-                mainWindow.Show();
+                RunnerIdentifier ecard1 = (RunnerIdentifier)combobox_ecard1.SelectedValue;
+                RunnerIdentifier ecard2 = (RunnerIdentifier)combobox_ecard2.SelectedValue;
 
-                exit = false;
-                this.Close();
+                if (ecard1 == RunnerIdentifier.Ecard && ecard2 == RunnerIdentifier.Ecard)
+                {
+                    MessageBox.Show("Du kan ikke sette begge brikkefeltene til å være brikkenr.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                else
+                {
+                    MainWindow mainWindow = new MainWindow(new DataStore.ETimingDatabase(textbox_filepath.Text, ecard1, ecard2), null);
+                    mainWindow.Show();
+
+                    exit = false;
+                    this.Close();
+                }
             }
         }
 
@@ -99,6 +120,18 @@ namespace DSQ_check
                         throw new NotImplementedException();
                 }
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            combobox_ecard1.Items.Add(new KeyValuePair<RunnerIdentifier, string>(RunnerIdentifier.Ecard, "Brikkenr"));
+            combobox_ecard1.Items.Add(new KeyValuePair<RunnerIdentifier, string>(RunnerIdentifier.EmiTag, "EmiTag"));
+
+            combobox_ecard2.Items.Add(new KeyValuePair<RunnerIdentifier, string>(RunnerIdentifier.Ecard, "Brikkenr"));
+            combobox_ecard2.Items.Add(new KeyValuePair<RunnerIdentifier, string>(RunnerIdentifier.EmiTag, "EmiTag"));
+
+            combobox_ecard1.SelectedIndex = 0;
+            combobox_ecard2.SelectedIndex = 1;
         }
 
     }

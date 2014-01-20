@@ -7,22 +7,32 @@ namespace DSQ_check.DataStore.Classes
 {
     public class Runner
     {
-        private string _firstName, _lastName, _clubName;
+        private string _firstName, _lastName, _clubName, _className;
         private uint? _ecard = null, _emitag1 = null, _emitag2 = null, _startNo = null;
         private int? _courseId;
-        public Runner(string firstName, string lastName, int? courseId, string clubName, uint? ecard, uint? emitag1, uint? emitag2, uint? startno)
+        private DateTime? _starttime;
+
+        public Runner(string firstName, string lastName, int? courseId, string clubName, string className, uint? ecard, uint? emitag1, uint? emitag2, uint? startno, DateTime? starttime)
         {
             _firstName = firstName;
             _lastName = lastName;
             _courseId = courseId;
             _clubName = clubName;
+            _className = className;
 
             _ecard = ecard;
             _emitag1 = emitag1;
             _emitag2 = emitag2;
             _startNo = startno;
+            _starttime = starttime;
         }
-
+        public string ClassName
+        {
+            get
+            {
+                return _className;
+            }
+        }
         public string ClubName
         {
             get
@@ -79,6 +89,12 @@ namespace DSQ_check.DataStore.Classes
                 return _startNo;
             }
         }
-
+        public DateTime? Starttime
+        {
+            get
+            {
+                return _starttime;
+            }
+        }
     }
 }

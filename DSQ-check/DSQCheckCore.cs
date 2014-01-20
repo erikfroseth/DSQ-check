@@ -16,6 +16,10 @@ namespace DSQ_check
         private Dictionary<int, DataStore.Classes.Course> _courses = new Dictionary<int,DataStore.Classes.Course>();
         private List<DataStore.Classes.Runner> _runners = new List<DataStore.Classes.Runner>();
 
+        private bool _checkControls = true;
+        private bool _checkStarttime = false;
+        private bool _checkEcardActivation = false;
+
         private System.Timers.Timer _refreshTimer = new System.Timers.Timer(TimeSpan.FromSeconds(10).TotalMilliseconds);
 
         public DSQCheckCore(DataStore.DatabaseInfo dbInfo)
@@ -43,6 +47,39 @@ namespace DSQ_check
             }
         }
 
+        public bool CheckControls
+        {
+            get
+            {
+                return _checkControls;
+            }
+            set
+            {
+                _checkControls = value;
+            }
+        }
+        public bool CheckStarttime
+        {
+            get
+            {
+                return _checkStarttime;
+            }
+            set
+            {
+                _checkStarttime = value;
+            }
+        }
+        public bool CheckEcardActivation
+        {
+            get
+            {
+                return _checkEcardActivation;
+            }
+            set
+            {
+                _checkEcardActivation = value;
+            }
+        }
         public void RefreshDataStore()
         {
             DataStore.DatabaseInterface database = null;
@@ -136,7 +173,8 @@ namespace DSQ_check
                 }
             }
         }
-        public static RunnerStatus PerformDSQCheck(IEnumerable<byte> runnerControls, IEnumerable<byte> courseControls)
+        
+        public static RunnerStatus PerformControlsDSQCheck(IEnumerable<byte> runnerControls, IEnumerable<byte> courseControls)
         {
             int counter = 0;
             int numCorrect = 0;
@@ -170,6 +208,24 @@ namespace DSQ_check
             {
                 return RunnerStatus.DSQ;
             }
+        }
+        public static RunnerStatus PerformActivationCheck(IEnumerable<byte> runnerControls)
+        {
+            bool first250Found = false;
+
+            foreach (byte controlCode in runnerControls)
+            {
+                if (controlCode == 250)
+                {
+                    first250Found = true;
+                }
+                else if (first250Found)
+                {
+                    return RunnerStatus.DSQ;
+                }
+            }
+
+            return RunnerStatus.OK;
         }
 
         public DataStore.DatabaseInfo DatabaseInfo
@@ -219,6 +275,10 @@ namespace DSQ_check
         }
     }
 
+    public enum DSQTest
+    {
+        CheckControls, CheckCorrectStarttime, CheckEcardActivation
+    }
     public enum DatabaseType
     {
         eTiming, EventSys

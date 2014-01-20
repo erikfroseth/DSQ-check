@@ -28,9 +28,11 @@ namespace DSQ_check.DataStore
                 command.Connection = _connection;
                 command.CommandText = "SELECT runners_general.first_name, runners_general.last_name, runners_specific.cource_id " +
                                     ", runners_specific.startno, runners_specific.ecard, runners_specific.emitag1, runners_specific.emitag2 " +
-                                    ", clubs.name AS clubName FROM runners_specific " +
+                                    ", clubs.name AS clubName, runners_specific.starttime AS starttime, classes.name AS className " +
+                                    " FROM runners_specific " +
                                     "JOIN runners_general USING (runner_id) " +
                                     "JOIN clubs USING (club_id) " +
+                                    "JOIN classes USING (class_id) " +
                                     "WHERE event_id = ?event_id;";
                 command.Parameters.AddWithValue("?event_id", _connInfo.EventId);
 
@@ -41,8 +43,11 @@ namespace DSQ_check.DataStore
                         string first_name = reader.GetString("first_name");
                         string last_name = reader.GetString("last_name");
                         string clubName = reader.GetString("clubName");
+                        string className = reader.GetString("className");
+
                         ushort courseId = reader.GetUInt16("cource_id");
                         uint? startNumber = null, ecard = null, emitag1 = null, emitag2 = null;
+                        DateTime? starttime = null;
 
                         if (!reader.IsDBNull(3))
                         {
@@ -64,8 +69,13 @@ namespace DSQ_check.DataStore
                             emitag2 = reader.GetUInt32("emitag2");
                         }
 
+                        if (!reader.IsDBNull(7))
+                        {
+                            starttime = reader.GetDateTime("starttime");
+                        }
+
                         DataStore.Classes.Runner newRunner;
-                        newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, ecard, emitag1, emitag2, startNumber);
+                        newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, className, ecard, emitag1, emitag2, startNumber, starttime);
 
                         runners.Add(newRunner);
                     }
@@ -101,7 +111,7 @@ namespace DSQ_check.DataStore
                 #endregion
 
                 #region GET_CONTROLS
-                command.CommandText = "SELECT cource_id, control_code FROM controls WHERE event_id = 2 ORDER BY cource_id, control_no;";
+                command.CommandText = "SELECT cource_id, control_code FROM controls WHERE event_id = ?event_id OR event_id = 1 ORDER BY cource_id, control_no;";
 
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {

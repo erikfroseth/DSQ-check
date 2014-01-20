@@ -70,19 +70,41 @@ namespace DSQ_check.TimingUnits
                     break;
             }
         }
+        public override void SyncClock(DateTime time)
+        {
+            time = time.AddSeconds(1);
 
+            // Set up message
+            byte[] message = new byte[9];
+
+            message[0] = 47;
+            message[1] = 83;
+            message[2] = 67;
+            message[3] = Convert.ToByte(time.ToString("yy"));
+            message[4] = Convert.ToByte(time.ToString("MM"));
+            message[5] = Convert.ToByte(time.ToString("dd"));
+            message[6] = Convert.ToByte(time.ToString("HH"));
+            message[7] = Convert.ToByte(time.ToString("mm"));
+            message[8] = Convert.ToByte(time.ToString("ss"));
+
+            // Sleep for higher accuracy
+            TimeSpan sleepTime = TimeSpan.FromMilliseconds(1000 - time.Millisecond);
+            System.Threading.Thread.Sleep(sleepTime);
+
+            sendMessage(message);
+        }
         private void ProcessEcardReading(List<byte> byteList)
         {
             // Get ecard number and update last ecard numer variable
             uint ecardNo = GetEcardNo(byteList, 20);
 
             // Get all readings from ecard
-            List<byte> ecardData = GetEcardData(byteList, 26);
+            List<DataStore.Classes.ControlPunch> ecardData = GetEcardData(byteList, 29);
 
             TimingPackage package = new TimingPackage(ecardNo, RunnerIdentifier.Ecard);
-            foreach (byte control in ecardData)
+            foreach (DataStore.Classes.ControlPunch punch in ecardData)
             {
-                package.AddControl(control);
+                package.AddControl(punch);
             }
 
             RaiseDataReadEvent(package);
@@ -98,21 +120,27 @@ namespace DSQ_check.TimingUnits
 
             return ecardNo;
         }
-        private List<byte> GetEcardData(List<byte> dataList, int offset)
+        private List<DataStore.Classes.ControlPunch> GetEcardData(List<byte> dataList, int offset)
         {
             // Initialize a table to hold all data
-            List<byte> ecardData = new List<byte>();
+            List<DataStore.Classes.ControlPunch> ecardData = new List<DataStore.Classes.ControlPunch>();
 
             // Loop through the bytelist
+            byte controlCounter = 1;
+
             for (int i = offset; i + 2 < dataList.Count; i += 3)
             {
                 if (dataList[i] == 0)
                 {
-                    continue;
+                    break;
                 }
+                else
+                {
+                    ushort seconds = BitConverter.ToUInt16(dataList.ToArray(), i + 1);
+                    TimeSpan usedTime = TimeSpan.FromSeconds(seconds);
 
-
-                ecardData.Add(dataList[i]);
+                    ecardData.Add(new DataStore.Classes.ControlPunch(dataList[i], controlCounter++, usedTime));
+                }
             }
 
             return ecardData;

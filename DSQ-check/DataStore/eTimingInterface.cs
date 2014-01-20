@@ -26,13 +26,36 @@ namespace DSQ_check.DataStore
 
         public List<Classes.Runner> GetRunners()
         {
+            DateTime arrDate;
             List<Classes.Runner> runners = new List<Classes.Runner>();
 
             using (OleDbCommand command = new OleDbCommand())
             {
                 command.Connection = _oleConnection;
+
+                // Get arr date
+                command.CommandText = "SELECT firststart FROM arr;";
+                object firststartValue = command.ExecuteScalar();
+
+                if (firststartValue == null)
+                {
+                    arrDate = DateTime.Now.Date;
+                }
+                else
+                {
+                    if (DateTime.TryParse(firststartValue.ToString(), out arrDate))
+                    {
+                        arrDate = arrDate.Date;
+                    }
+                    else
+                    {
+                        arrDate = DateTime.Now.Date;
+                    }
+                }
+
                 command.CommandText = "SELECT Name.name AS first_name, Name.ename AS last_name, Name.cource AS courseId, team.name AS clubName " +
-                                        ", Name.startno AS startno, Name.ecard AS ecard, Name.ecard2 AS ecard2 FROM Name, team WHERE Name.team = team.code;";
+                                        ", Name.startno AS startno, Name.ecard AS ecard, Name.ecard2 AS ecard2, Name.starttime AS starttime " +
+                                        ", class.class AS className FROM Name, team, class WHERE Name.team = team.code AND Name.class = class.code;";
 
                 using (OleDbDataReader reader = command.ExecuteReader())
                 {
@@ -41,8 +64,11 @@ namespace DSQ_check.DataStore
                         string first_name = reader.GetValue(0).ToString().Trim();
                         string last_name = reader.GetValue(1).ToString().Trim();
                         string clubName = reader.GetValue(3).ToString().Trim();
+                        string className = reader.GetValue(8).ToString().Trim();
+
                         int? courseId = null;
                         uint? startNumber = null, ecard = null, emitag1 = null, emitag2 = null;
+                        DateTime? starttime = null;
 
                         if (!reader.IsDBNull(2))
                         {
@@ -100,7 +126,26 @@ namespace DSQ_check.DataStore
                             }
                         }
 
-                        Classes.Runner newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, ecard, emitag1, emitag2, startNumber);
+                        string test = reader.GetDataTypeName(7);
+
+                        if (!reader.IsDBNull(7))
+                        {
+                            double value = reader.GetDouble(7);
+
+                            if (value <= 1)
+                            {
+                                starttime = arrDate.Date.Add(DateTime.FromOADate(value).TimeOfDay);
+                            }
+                            else
+                            {
+                                starttime = DateTime.FromOADate(value);
+                            }
+                        }
+                        else
+                        {
+                        }
+
+                        Classes.Runner newRunner = new Classes.Runner(first_name, last_name, courseId, clubName, className, ecard, emitag1, emitag2, startNumber, starttime);
                         runners.Add(newRunner);
                     }
                 }

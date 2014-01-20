@@ -46,40 +46,29 @@ namespace DSQ_check
             textblock_status.Text = string.Empty;
 
             grid_dsqControl.Background = Brushes.Transparent;
-            _timingUnit.TimingDataReadEvent += new TimingUnits.TimingUnit.TimingDataReadDelegatte(_timingUnit_TimingDataReadEvent);
-
         }
 
         private void _timingUnit_TimingDataReadEvent(TimingUnits.TimingPackage package)
         {
-            Tuple<DataStore.Classes.Runner, DataStore.Classes.Course> runnerAndCourse = _dsqCheckCore.GetRunnerAndCourse(package.CardNumber, package.IdentifierType);
-
-            listbox_runner_controls.ItemsSource = package.Controls;
-
-            if (runnerAndCourse.Item1 == null)
+            if (!System.Threading.Thread.CurrentThread.Equals(this.Dispatcher.Thread))
             {
-                // NO RUNNER FOUND!
-                textblock_class.Text = "Klasse:";
-                textblock_club.Text = string.Empty;
-                textblock_course.Text = "Løype:";
-                textblock_name.Text = "Ukjent løper";
-                textblock_status.Text = "Ukjent løper";
-
-                listbox_course_controls.ItemsSource = null;
-
-                grid_dsqControl.Background = Brushes.Orange;
+                this.Dispatcher.Invoke(new TimingUnits.TimingUnit.TimingDataReadDelegatte(_timingUnit_TimingDataReadEvent), package);
+                return;
             }
             else
             {
-                textblock_name.Text = string.Format("{0}, {1}", runnerAndCourse.Item1.LastName, runnerAndCourse.Item1.FirstName);
-                textblock_class.Text = "Klasse:";
-                textblock_club.Text = runnerAndCourse.Item1.ClubName;
+                Tuple<DataStore.Classes.Runner, DataStore.Classes.Course> runnerAndCourse = _dsqCheckCore.GetRunnerAndCourse(package.CardNumber, package.IdentifierType);
 
-                if (runnerAndCourse.Item2 == null)
+                listbox_runner_controls.ItemsSource = package.ControlPunches.Select(r => r.ControlCode);
+
+                if (runnerAndCourse.Item1 == null)
                 {
-                    // NO COURSE FOUND
-                    textblock_course.Text = "Løype: UKJENT";
-                    textblock_status.Text = "Ukjent løype";
+                    // NO RUNNER FOUND!
+                    textblock_class.Text = "Klasse:";
+                    textblock_club.Text = string.Empty;
+                    textblock_course.Text = "Løype:";
+                    textblock_name.Text = "Ukjent løper";
+                    textblock_status.Text = "Ukjent løper";
 
                     listbox_course_controls.ItemsSource = null;
 
@@ -87,24 +76,67 @@ namespace DSQ_check
                 }
                 else
                 {
-                    // Both runner and course found. Perform DSQ-check
-                    RunnerStatus runnerStatus = DSQCheckCore.PerformDSQCheck(package.Controls, runnerAndCourse.Item2.Controls);
+                    textblock_name.Text = string.Format("{0}, {1}", runnerAndCourse.Item1.LastName, runnerAndCourse.Item1.FirstName);
+                    textblock_class.Text = "Klasse:";
+                    textblock_club.Text = runnerAndCourse.Item1.ClubName;
 
-                    textblock_course.Text = "Løype: " + runnerAndCourse.Item2.CourseName;
-                    listbox_course_controls.ItemsSource = runnerAndCourse.Item2.Controls;
-
-                    switch (runnerStatus)
+                    if (runnerAndCourse.Item2 == null)
                     {
-                        case RunnerStatus.DSQ:
-                            grid_dsqControl.Background = Brushes.Pink;
-                            textblock_status.Text = "Diskvalifisert";
-                            break;
-                        case RunnerStatus.OK:
-                            grid_dsqControl.Background = Brushes.LightGreen;
-                            textblock_status.Text = "Godkjent";
-                            break;
-                        default:
-                            throw new NotImplementedException();
+                        // NO COURSE FOUND
+                        textblock_course.Text = "Løype: UKJENT";
+                        textblock_status.Text = "Ukjent løype";
+
+                        listbox_course_controls.ItemsSource = null;
+
+                        grid_dsqControl.Background = Brushes.Orange;
+                    }
+                    else
+                    {
+                        // Both runner and course found. Perform DSQ-check
+                        RunnerStatus controlCheck = RunnerStatus.OK;
+                        RunnerStatus starttimeCheck = RunnerStatus.OK;
+                        RunnerStatus activateionCheck = RunnerStatus.OK;
+
+                        if (_dsqCheckCore.CheckControls)
+                        {
+                            controlCheck = DSQCheckCore.PerformControlsDSQCheck(package.ControlPunches.Select(r => r.ControlCode), runnerAndCourse.Item2.Controls);
+                        }
+
+                        if (_dsqCheckCore.CheckEcardActivation)
+                        {
+                            activateionCheck = DSQCheckCore.PerformActivationCheck(package.ControlPunches.Select(r => r.ControlCode));
+                        }
+
+                        if (_dsqCheckCore.CheckStarttime)
+                        {
+                        }
+
+                        textblock_course.Text = "Løype: " + runnerAndCourse.Item2.CourseName;
+                        listbox_course_controls.ItemsSource = runnerAndCourse.Item2.Controls;
+
+                        RunnerStatus overallRunnerstatus;
+                        if (controlCheck == RunnerStatus.DSQ || starttimeCheck == RunnerStatus.DSQ || activateionCheck == RunnerStatus.DSQ)
+                        {
+                            overallRunnerstatus = RunnerStatus.DSQ;
+                        }
+                        else
+                        {
+                            overallRunnerstatus = RunnerStatus.OK;
+                        }
+
+                        switch (overallRunnerstatus)
+                        {
+                            case RunnerStatus.DSQ:
+                                grid_dsqControl.Background = Brushes.Pink;
+                                textblock_status.Text = "Diskvalifisert";
+                                break;
+                            case RunnerStatus.OK:
+                                grid_dsqControl.Background = Brushes.LightGreen;
+                                textblock_status.Text = "Godkjent";
+                                break;
+                            default:
+                                throw new NotImplementedException();
+                        }
                     }
                 }
             }
@@ -135,23 +167,36 @@ namespace DSQ_check
 
         private void menuitem_ecu1(object sender, RoutedEventArgs e)
         {
+            if (_timingUnit != null && _timingUnit.IsStarted)
+            {
+                MessageBox.Show("Du må stoppe kommunikasjonen før du kan bytte tidtakingsenhet");
+                return;
+            }
             Dialogs.ChooseCOMPort comPort = new Dialogs.ChooseCOMPort();
             comPort.ShowDialog();
 
             if (!string.IsNullOrEmpty(comPort.COMPort))
             {
                 _timingUnit = new TimingUnits.ECU1(comPort.COMPort);
+                _timingUnit.TimingDataReadEvent += new TimingUnits.TimingUnit.TimingDataReadDelegatte(_timingUnit_TimingDataReadEvent);
+
             }
         }
 
         private void menuitem_mtr4(object sender, RoutedEventArgs e)
         {
+            if (_timingUnit != null && _timingUnit.IsStarted)
+            {
+                MessageBox.Show("Du må stoppe kommunikasjonen før du kan bytte tidtakingsenhet");
+                return;
+            }
             Dialogs.ChooseCOMPort comPort = new Dialogs.ChooseCOMPort();
             comPort.ShowDialog();
 
             if (!string.IsNullOrEmpty(comPort.COMPort))
             {
                 _timingUnit = new TimingUnits.MTR4(comPort.COMPort);
+                _timingUnit.TimingDataReadEvent += new TimingUnits.TimingUnit.TimingDataReadDelegatte(_timingUnit_TimingDataReadEvent);
             }
         }
 
@@ -169,7 +214,7 @@ namespace DSQ_check
                 {
                     _timingUnit.StopCommunication();
 
-                    menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
+//                    menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
                     menuitem_startstop_communication.Header = "Start kommunikasjon";
                 }
                 else
@@ -185,7 +230,7 @@ namespace DSQ_check
                     }
                     finally
                     {
-                        menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
+  //                      menuitem_startstop_communication.IsEnabled = !_timingUnit.IsStarted;
 
                         if (_timingUnit.IsStarted)
                         {

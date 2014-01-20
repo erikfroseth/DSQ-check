@@ -111,15 +111,16 @@ namespace DSQ_check.TimingUnits
         }
         private void ProcessEmiTagMessage(string[] data)
         {
-            SortedDictionary<ushort, byte> controls = new SortedDictionary<ushort, byte>();
+            List<DataStore.Classes.ControlPunch> punches = new List<DataStore.Classes.ControlPunch>();
 
             uint? tagNumber = null;
             uint? originalTagNumber = null;
          
-            ushort controlNumber;
-            byte controlCode;
+            byte controlCode, controlNumber;
             byte prevCode = 0;
             uint uintValue;
+            TimeSpan usedTime;
+            DateTime? timeOfIncident = null;
 
             bool lastControlRead = false;
 
@@ -149,6 +150,15 @@ namespace DSQ_check.TimingUnits
                         break;
                     case 'W':
                         // Time of incident
+                        TimeSpan tempValue;
+                        if (!TimeSpan.TryParse(field.Remove(0, 1), out tempValue))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            timeOfIncident = DateTime.Now.Date.Add(tempValue);
+                        }
                         break;
                     case 'S':
                         // Custom emitag number
@@ -178,7 +188,7 @@ namespace DSQ_check.TimingUnits
                         {
                             break;
                         }
-                        if (!ushort.TryParse(fieldSplit[0].Remove(0, 1), out controlNumber))
+                        if (!byte.TryParse(fieldSplit[0].Remove(0, 1), out controlNumber))
                         {
                             break;
                         }
@@ -194,9 +204,13 @@ namespace DSQ_check.TimingUnits
                         {
                             break;
                         }
+                        else if (!TimeSpan.TryParse(fieldSplit[3], out usedTime))
+                        {
+                            break;
+                        }
 
-                        controls.Add(controlNumber, controlCode);
-
+                        punches.Add(new DataStore.Classes.ControlPunch(controlCode, controlNumber, usedTime));
+                        
                         prevCode = controlCode;
 
                         if (controlCode == 250)
@@ -210,16 +224,30 @@ namespace DSQ_check.TimingUnits
             }
 
             // Check if all values has been set correctly
-            if (tagNumber.HasValue && originalTagNumber.HasValue)
+            if (tagNumber.HasValue && originalTagNumber.HasValue && timeOfIncident.HasValue)
             {
-                TimingPackage package = new TimingPackage(tagNumber.Value, RunnerIdentifier.EmiTag);
-                foreach (byte control in controls.OrderBy(r => r.Key).Select(r => r.Value))
-                {
-                    package.AddControl(control);
-                }
+               
+                TimingPackage package = new TimingPackage(tagNumber.Value, RunnerIdentifier.EmiTag, null);
+                //foreach (byte control in controls.OrderBy(r => r.Key).Select(r => r.Value))
+                //{
+                //    package.AddControl(
+                //}
 
                 RaiseDataReadEvent(package);
             }
+        }
+        public override void SyncClock(DateTime time)
+        {
+            // Set up string (add one second!)
+            string messageString = "/SC" + time.AddSeconds(1).ToString("HH:mm:ss") + '\r' + '\n';
+
+            // Sleep for higher accuracy
+            TimeSpan sleepTime = TimeSpan.FromMilliseconds(1000 - time.Millisecond);
+            System.Threading.Thread.Sleep(sleepTime);
+
+            // Send message to device
+            byte[] message = System.Text.Encoding.ASCII.GetBytes(messageString);
+            sendMessage(message);
         }
     }
 

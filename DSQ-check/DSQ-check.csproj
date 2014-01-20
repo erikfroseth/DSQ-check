@@ -87,6 +87,7 @@
     <Compile Include="ChooseEventSysEvent.xaml.cs">
       <DependentUpon>ChooseEventSysEvent.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DataStore\Classes\ControlPunch.cs" />
     <Compile Include="DataStore\Classes\Course.cs" />
     <Compile Include="DataStore\Classes\Runner.cs" />
     <Compile Include="DataStore\DatabaseInfo.cs" />
